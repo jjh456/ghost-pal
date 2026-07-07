@@ -1,0 +1,322 @@
+:root {
+  --bg: #0a0d0f;
+  --panel: #12171a;
+  --panel-2: #171d20;
+  --border: #232b2e;
+  --text: #cfd8d8;
+  --text-dim: #7c8a8a;
+  --cold: #3ddbd9;
+  --cold-dim: #1d5f5e;
+  --warn: #f0a640;
+  --danger: #d94f4f;
+  --radius: 10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex: 0 0 auto;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px 16px 12px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+
+.panel__title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.panel__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--warn);
+  font-family: var(--mono);
+}
+
+.panel__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel__toggle .panel__title { margin: 0; }
+
+.panel__toggle-icon {
+  color: var(--cold);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.panel__toggle[aria-expanded="true"] .panel__toggle-icon { transform: rotate(45deg); }
+
+.panel__toggle:disabled {
+  cursor: default;
+}
+.panel__toggle:disabled .panel__toggle-icon { visibility: hidden; }
+
+.panel__note--dim {
+  color: var(--text-dim);
+  font-family: var(--sans);
+  font-style: italic;
+}
+
+.chip__hint {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.chip[aria-pressed="true"] .chip__hint { color: inherit; opacity: 0.8; }
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+.chip-row--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+/* Traits row sits directly under a toggle button whose title has its
+   margin zeroed out, so it needs its own top gap. */
+#traitsRow {
+  margin-top: 10px;
+}
+
+.chip-row--fit {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.chip-row--fit .chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  white-space: normal;
+  text-align: center;
+  font-size: 13px;
+}
+
+.chip {
+  flex: 0 0 auto;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-family: var(--sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  min-height: 40px;
+}
+
+.chip:active { transform: scale(0.98); }
+
+.chip[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--cold) 18%, var(--panel-2));
+  border-color: var(--cold);
+  color: var(--cold);
+  font-weight: 600;
+}
+
+.chip[data-gender="male"][aria-pressed="true"],
+.chip[data-gender="female"][aria-pressed="true"] {
+  background: color-mix(in srgb, var(--warn) 18%, var(--panel-2));
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.btn--ghost:active { color: var(--danger); border-color: var(--danger); }
+
+.panel--results {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.panel__results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex: 0 0 auto;
+}
+
+.panel__count {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--cold);
+}
+
+.results-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 8px;
+  align-content: start;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+}
+
+.ghost-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ghost-card--ruled-out {
+  opacity: 0.35;
+}
+
+.ghost-card--mimic-flag {
+  border-color: var(--danger);
+}
+
+.ghost-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ghost-card__name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.ghost-card__bar {
+  display: flex;
+  gap: 3px;
+}
+
+.ghost-card__seg {
+  width: 14px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.ghost-card__seg--filled { background: var(--warn); }
+
+.ghost-card__meta {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+.ghost-card__mimic-note {
+  font-size: 12px;
+  color: var(--danger);
+  font-family: var(--mono);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 20px 10px;
+}
+
+@media (min-width: 480px) {
+  .app-header h1 { font-size: 20px; }
+  main { padding: 16px 20px 12px; }
+}
