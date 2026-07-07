@@ -40,16 +40,17 @@ const MAX_VISIBLE_TRAITS = 5;
 
 const state = {
   ghosts: [],
-  evidence: new Set(),
+  evidence: new Map(), // code -> 'positive' | 'negative'; absent = unknown
   traits: new Set(),
   gender: "unknown", // 'unknown' | 'male' | 'female'
-  traitsExpanded: false,
+  traitsExpanded: true,
 };
 
 const els = {
   evidenceRow: document.getElementById("evidenceRow"),
   traitsRow: document.getElementById("traitsRow"),
   traitsToggle: document.getElementById("traitsToggle"),
+  traitsToggleLabel: document.getElementById("traitsToggleLabel"),
   traitsHint: document.getElementById("traitsHint"),
   genderRow: document.getElementById("genderRow"),
   resultsList: document.getElementById("resultsList"),
@@ -63,6 +64,13 @@ async function loadGhosts() {
   state.ghosts = data.ghosts;
 }
 
+// aria-pressed cycles false (unknown) -> true (positive) -> mixed (negative/crossed out) -> false.
+function evidenceAriaValue(mark) {
+  if (mark === "positive") return "true";
+  if (mark === "negative") return "mixed";
+  return "false";
+}
+
 function buildEvidenceChips() {
   els.evidenceRow.innerHTML = "";
   Object.entries(EVIDENCE_LABELS).forEach(([code, label]) => {
@@ -73,9 +81,11 @@ function buildEvidenceChips() {
     chip.setAttribute("aria-pressed", "false");
     chip.textContent = label;
     chip.addEventListener("click", () => {
-      if (state.evidence.has(code)) state.evidence.delete(code);
-      else state.evidence.add(code);
-      chip.setAttribute("aria-pressed", String(state.evidence.has(code)));
+      const current = state.evidence.get(code);
+      const next = !current ? "positive" : current === "positive" ? "negative" : undefined;
+      if (next) state.evidence.set(code, next);
+      else state.evidence.delete(code);
+      chip.setAttribute("aria-pressed", evidenceAriaValue(next));
       render();
     });
     els.evidenceRow.appendChild(chip);
@@ -119,6 +129,7 @@ function updateTraitsPanel(possibleCount, possibleNames) {
   els.traitsHint.hidden = narrowedEnough;
   els.traitsToggle.disabled = !narrowedEnough;
   els.traitsToggle.setAttribute("aria-expanded", String(narrowedEnough && state.traitsExpanded));
+  els.traitsToggleLabel.textContent = state.traitsExpanded ? "Collapse" : "Expand";
   els.traitsRow.hidden = !narrowedEnough || !state.traitsExpanded;
 
   buildTraitChips(narrowedEnough ? pickVisibleTraits(possibleNames) : []);
@@ -148,7 +159,7 @@ function wireReset() {
     state.evidence.clear();
     state.traits.clear();
     state.gender = "unknown";
-    state.traitsExpanded = false;
+    state.traitsExpanded = true;
     document.querySelectorAll(".chip[data-evidence]").forEach((c) => c.setAttribute("aria-pressed", "false"));
     els.genderRow.querySelector('[data-gender="unknown"]').setAttribute("aria-pressed", "true");
     render();
@@ -162,14 +173,18 @@ function evaluateGhost(ghost) {
   const isMimic = ghost.special === "DO_NOT_ELIMINATE_ON_ORB";
 
   // Evidence check
-  for (const code of state.evidence) {
+  for (const [code, mark] of state.evidence) {
     const hasIt = ghost.evidence.includes(code);
-    if (!hasIt) {
+    if (mark === "positive" && !hasIt) {
       if (isMimic && code === "Orb") {
         // Mimic fakes Orb — never eliminate on this evidence alone.
         mimicFlag = true;
         continue;
       }
+      ruledOut = true;
+    }
+    if (mark === "negative" && hasIt) {
+      // Evidence confirmed absent — any ghost that requires it is out.
       ruledOut = true;
     }
   }
@@ -189,7 +204,7 @@ function evaluateGhost(ghost) {
     }
   }
 
-  const matchCount = ghost.evidence.filter((e) => state.evidence.has(e)).length;
+  const matchCount = ghost.evidence.filter((e) => state.evidence.get(e) === "positive").length;
 
   return { possible: !ruledOut, mimicFlag, matchCount };
 }
