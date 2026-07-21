@@ -2,13 +2,14 @@
   "_meta": {
     "source": "https://phasmophobia.fandom.com/wiki/Ghost and /wiki/Evidence",
     "researched": "2026-07-01",
-    "note": "29 ghost types, 6 evidence types (post-Ouija-removal evidence pool: EMF5, Ghost Orb, Spirit Box, Freezing Temps, UV/Fingerprints, Ghost Writing, DOTS Projector = 7 total, 3 assigned per ghost on default difficulty). Verify against in-game journal if a future patch changes evidence pools.",
+    "note": "30 ghost types, 6 evidence types (post-Ouija-removal evidence pool: EMF5, Ghost Orb, Spirit Box, Freezing Temps, UV/Fingerprints, Ghost Writing, DOTS Projector = 7 total, 3 assigned per ghost on default difficulty). Verify against in-game journal if a future patch changes evidence pools.",
     "evidenceTypes": ["EMF5", "Orb", "SpiritBox", "Freezing", "UV", "Writing", "DOTS"]
   },
   "ghosts": [
     { "name": "Aswang", "evidence": ["Freezing", "Writing", "DOTS"], "female": null, "strength": "Accelerates faster with line-of-sight than any ghost; can rarely hunt with zero grace period.", "weakness": "Cannot kill in official hiding spots; slower hunt base speed." },
     { "name": "Banshee", "evidence": ["Orb", "UV", "DOTS"], "female": true, "strength": "Targets one chosen player if inside; more likely to sing during ghost events.", "weakness": "Distinctive wail audible on Parabolic Mic / Sound Recorder." },
     { "name": "Dayan", "evidence": ["EMF5", "Orb", "SpiritBox"], "female": true, "strength": "Hunts sooner and moves faster when a player moves nearby.", "weakness": "Hunts later and moves slower when a player stands still nearby." },
+    { "name": "Deildegast", "evidence": ["EMF5", "Writing", "DOTS"], "female": null, "strength": "Near-Revenant speed at the start of a contract before any items have been moved; never gets a line-of-sight speed boost like other ghosts.", "weakness": "Slows heavily as more unique items are moved around the map (caps at 30); each moved item only slows it starting the next hunt, so items thrown mid-hunt don't help; 50% sanity hunting threshold." },
     { "name": "Demon", "evidence": ["Freezing", "UV", "Writing"], "female": null, "strength": "Incense less effective; can rarely hunt at any sanity.", "weakness": "Crucifix range is 50% larger than its indicator." },
     { "name": "Deogen", "evidence": ["SpiritBox", "Writing", "DOTS"], "female": null, "strength": "Always knows player location during a hunt, closes distance fast.", "weakness": "Moves extremely slowly once close to its target." },
     { "name": "Gallu", "evidence": ["EMF5", "SpiritBox", "UV"], "female": null, "strength": "Becomes aggressive when protective equipment (crucifix etc.) is used.", "weakness": "Becomes less aggressive after a hunt." },

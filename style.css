@@ -71,6 +71,17 @@ main {
   flex: 0 0 auto;
 }
 
+.panel--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.panel--row .panel__title { margin: 0; }
+.panel--row .chip-row { flex: 0 0 auto; }
+
 .panel__title {
   font-size: 13px;
   text-transform: uppercase;
@@ -151,21 +162,6 @@ main {
   margin-top: 10px;
 }
 
-.chip-row--fit {
-  flex-wrap: nowrap;
-  gap: 6px;
-}
-
-.chip-row--fit .chip {
-  flex: 1 1 0;
-  min-width: 0;
-  padding-left: 6px;
-  padding-right: 6px;
-  white-space: normal;
-  text-align: center;
-  font-size: 13px;
-}
-
 .chip {
   flex: 0 0 auto;
   background: var(--panel-2);
@@ -182,6 +178,12 @@ main {
 }
 
 .chip:active { transform: scale(0.98); }
+
+.chip--sm {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 13px;
+}
 
 .chip[aria-pressed="true"] {
   background: color-mix(in srgb, var(--cold) 18%, var(--panel-2));

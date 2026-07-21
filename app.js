@@ -30,6 +30,7 @@ const TRAITS = [
   { id: "curses-sanity", label: "Curses a player, faster sanity drain", ghosts: ["Moroi"] },
   { id: "no-hunt-crowded", label: "Won't hunt if people are nearby", ghosts: ["Shade"] },
   { id: "talk-raises-threshold", label: "Talking nearby raises its hunt threshold", ghosts: ["Yokai"] },
+  { id: "slows-with-moved-items", label: "Very fast early, slows as more unique items get moved", ghosts: ["Deildegast"] },
 ];
 
 // Traits are mostly informational — only worth showing once the field is
@@ -138,9 +139,9 @@ function updateTraitsPanel(possibleCount, possibleNames) {
 function wireGender() {
   els.genderRow.querySelectorAll("[data-gender]").forEach((chip) => {
     chip.addEventListener("click", () => {
-      state.gender = chip.dataset.gender;
+      state.gender = state.gender === chip.dataset.gender ? "unknown" : chip.dataset.gender;
       els.genderRow.querySelectorAll("[data-gender]").forEach((c) => {
-        c.setAttribute("aria-pressed", String(c === chip));
+        c.setAttribute("aria-pressed", String(c.dataset.gender === state.gender));
       });
       render();
     });
@@ -161,7 +162,7 @@ function wireReset() {
     state.gender = "unknown";
     state.traitsExpanded = true;
     document.querySelectorAll(".chip[data-evidence]").forEach((c) => c.setAttribute("aria-pressed", "false"));
-    els.genderRow.querySelector('[data-gender="unknown"]').setAttribute("aria-pressed", "true");
+    els.genderRow.querySelectorAll("[data-gender]").forEach((c) => c.setAttribute("aria-pressed", "false"));
     render();
   });
 }

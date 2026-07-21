@@ -25,7 +25,7 @@ A single-screen live filter, not a session log:
 
 ## Data
 
-`data/ghosts.json` — 29 ghost types, each with:
+`data/ghosts.json` — 30 ghost types, each with:
 
 - `evidence`: array of exactly 3 evidence codes
 - `female`: `true` if always female (Banshee, Dayan), else `null`
