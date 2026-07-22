@@ -25,25 +25,33 @@
 </header>
 
 <main>
-  <section class="panel panel--row" aria-labelledby="gender-heading">
-    <h2 id="gender-heading" class="panel__title">Gender</h2>
-    <div class="chip-row" id="genderRow">
-      <button class="chip chip--sm" data-gender="male" aria-pressed="false">Male</button>
-      <button class="chip chip--sm" data-gender="female" aria-pressed="false">Female</button>
+  <section class="panel panel--obs" aria-labelledby="obs-heading">
+    <h2 id="obs-heading" class="panel__title">Observations</h2>
+    <div class="obs-cycle-row">
+      <button class="obs-cycle" type="button" data-obs="gender">
+        <span class="obs-cycle__key">Gender</span><span class="obs-cycle__val">—</span>
+      </button>
+      <button class="obs-cycle" type="button" data-obs="huntSpeed">
+        <span class="obs-cycle__key">Speed</span><span class="obs-cycle__val">—</span>
+      </button>
+      <button class="obs-cycle" type="button" data-obs="losAccel">
+        <span class="obs-cycle__key">LoS</span><span class="obs-cycle__val">—</span>
+      </button>
+    </div>
+    <div class="obs-row obs-row--top">
+      <span class="obs-row__label" id="evidence-label">Evidence</span>
+      <div class="chip-row chip-row--wrap" id="evidenceRow" role="group" aria-labelledby="evidence-label"></div>
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="evidence-heading">
-    <h2 id="evidence-heading" class="panel__title">Evidence</h2>
-    <div class="chip-row chip-row--wrap" id="evidenceRow"></div>
-  </section>
-
   <section class="panel" aria-labelledby="traits-heading">
-    <button class="panel__toggle" id="traitsToggle" type="button" aria-expanded="true" aria-controls="traitsRow">
-      <h2 id="traits-heading" class="panel__title">Behavior traits</h2>
-      <span class="panel__toggle-label" id="traitsToggleLabel">Collapse</span>
+    <button class="panel__toggle" id="traitsToggle" type="button" aria-expanded="false" aria-controls="traitsRow">
+      <h2 id="traits-heading" class="panel__title">Behaviors</h2>
+      <span class="panel__toggle-meta">
+        <span class="panel__count" id="traitsCount">19/19 possible</span>
+        <span class="panel__toggle-label" id="traitsToggleLabel">Expand</span>
+      </span>
     </button>
-    <p class="panel__note panel__note--dim" id="traitsHint">Confirm a bit more evidence to see relevant traits.</p>
     <div class="chip-row chip-row--wrap" id="traitsRow" hidden></div>
   </section>
 

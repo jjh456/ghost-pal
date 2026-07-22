@@ -1,4 +1,4 @@
-const CACHE_NAME = "phasmo-ghost-id-v3";
+const CACHE_NAME = "phasmo-ghost-id-v9";
 const ASSETS = [
   "./",
   "./index.html",

@@ -45,27 +45,47 @@ const TRAITS = [
   { id: "slows-with-moved-items", label: "Very fast early, slows as more unique items get moved", ghosts: ["Deildegast"] },
 ];
 
-// Traits are mostly informational — only worth showing once the field is
-// narrowed down, and only a handful at a time so they don't crowd out the
-// results list.
-const TRAITS_NARROW_THRESHOLD = 10;
-const MAX_VISIBLE_TRAITS = 5;
-
 const state = {
   ghosts: [],
   evidence: new Map(), // code -> 'positive' | 'negative'; absent = unknown
   traits: new Set(),
-  gender: "unknown", // 'unknown' | 'male' | 'female'
-  traitsExpanded: true,
+  gender: null, // null (unknown) | 'male' | 'female'
+  huntSpeed: null, // null | 'slow' | 'normal' | 'fast'
+  losAccel: null, // null | 'none' | 'normal' | 'fast'
+  traitsExpanded: false, // traits are for advanced players — start tucked away
+  manuallyOut: new Set(), // ghost names the user crossed off by hand
 };
+
+// Single-select observations as cycle selectors: each tap steps through
+// unset → value → … → unset, the same pattern the evidence chips teach.
+// The button doubles as the readout, so nothing expands or shifts layout.
+const OBS_CONTROLS = [
+  {
+    key: "gender",
+    name: "Gender",
+    cycle: ["male", "female"],
+    valueLabels: { male: "Male", female: "Female" },
+  },
+  {
+    key: "huntSpeed",
+    name: "Hunt speed",
+    cycle: ["slow", "normal", "fast"],
+    valueLabels: { slow: "Slow", normal: "Normal", fast: "Fast" },
+  },
+  {
+    key: "losAccel",
+    name: "LoS speedup",
+    cycle: ["none", "normal", "fast"],
+    valueLabels: { none: "None", normal: "Normal", fast: "Fast" },
+  },
+];
 
 const els = {
   evidenceRow: document.getElementById("evidenceRow"),
   traitsRow: document.getElementById("traitsRow"),
   traitsToggle: document.getElementById("traitsToggle"),
   traitsToggleLabel: document.getElementById("traitsToggleLabel"),
-  traitsHint: document.getElementById("traitsHint"),
-  genderRow: document.getElementById("genderRow"),
+  traitsCount: document.getElementById("traitsCount"),
   resultsList: document.getElementById("resultsList"),
   resultCount: document.getElementById("resultCount"),
   resetBtn: document.getElementById("resetBtn"),
@@ -88,7 +108,7 @@ function buildEvidenceChips() {
   els.evidenceRow.innerHTML = "";
   Object.entries(EVIDENCE_LABELS).forEach(([code, label]) => {
     const chip = document.createElement("button");
-    chip.className = "chip";
+    chip.className = "chip chip--sm";
     chip.type = "button";
     chip.dataset.evidence = code;
     chip.setAttribute("aria-pressed", "false");
@@ -106,14 +126,14 @@ function buildEvidenceChips() {
 }
 
 // Picks which traits are worth showing: currently-selected ones stay put
-// (so they can be un-toggled), topped up with traits whose ghost(s) are
-// still in the running, capped at MAX_VISIBLE_TRAITS.
+// (so they can be un-toggled), followed by traits whose ghost(s) are
+// still in the running.
 function pickVisibleTraits(possibleNames) {
   const selected = TRAITS.filter((t) => state.traits.has(t.id));
   const relevant = TRAITS.filter(
     (t) => !state.traits.has(t.id) && t.ghosts.some((g) => possibleNames.has(g))
   );
-  return [...selected, ...relevant].slice(0, MAX_VISIBLE_TRAITS);
+  return [...selected, ...relevant];
 }
 
 function buildTraitChips(traits) {
@@ -134,29 +154,66 @@ function buildTraitChips(traits) {
   });
 }
 
-// Traits are informational and mostly noise until the field is narrowed
-// down, so keep the whole panel collapsed behind a hint until then.
-function updateTraitsPanel(possibleCount, possibleNames) {
-  const narrowedEnough = state.ghosts.length > 0 && possibleCount <= TRAITS_NARROW_THRESHOLD;
+// Traits are for advanced players, so the panel starts collapsed and
+// just advertises how many are still relevant.
+// The count goes amber while trait filters are active, so a collapsed
+// panel still signals it's affecting results.
+function updateTraitsPanel(possibleNames) {
+  const visible = pickVisibleTraits(possibleNames);
 
-  els.traitsHint.hidden = narrowedEnough;
-  els.traitsToggle.disabled = !narrowedEnough;
-  els.traitsToggle.setAttribute("aria-expanded", String(narrowedEnough && state.traitsExpanded));
+  els.traitsCount.textContent = `${visible.length}/${TRAITS.length} possible`;
+  els.traitsCount.classList.toggle("panel__count--active", state.traits.size > 0);
+  els.traitsToggle.setAttribute("aria-expanded", String(state.traitsExpanded));
   els.traitsToggleLabel.textContent = state.traitsExpanded ? "Collapse" : "Expand";
-  els.traitsRow.hidden = !narrowedEnough || !state.traitsExpanded;
+  els.traitsRow.hidden = !state.traitsExpanded;
 
-  buildTraitChips(narrowedEnough ? pickVisibleTraits(possibleNames) : []);
+  buildTraitChips(state.traitsExpanded ? visible : []);
 }
 
-function wireGender() {
-  els.genderRow.querySelectorAll("[data-gender]").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      state.gender = state.gender === chip.dataset.gender ? "unknown" : chip.dataset.gender;
-      els.genderRow.querySelectorAll("[data-gender]").forEach((c) => {
-        c.setAttribute("aria-pressed", String(c.dataset.gender === state.gender));
-      });
+// Syncs the cycle selectors to state: value slot shows the set value (or
+// a dim em dash when unset) and the button goes amber when set.
+function updateObsControls() {
+  OBS_CONTROLS.forEach((ctl) => {
+    const value = state[ctl.key];
+    ctl.valEl.textContent = value ? ctl.valueLabels[value] : "—";
+    ctl.btnEl.classList.toggle("obs-cycle--set", Boolean(value));
+    ctl.btnEl.setAttribute(
+      "aria-label",
+      `${ctl.name}: ${value ? ctl.valueLabels[value] : "not set"}. Tap to cycle.`
+    );
+  });
+}
+
+function wireObservations() {
+  OBS_CONTROLS.forEach((ctl) => {
+    ctl.btnEl = document.querySelector(`.obs-cycle[data-obs="${ctl.key}"]`);
+    ctl.valEl = ctl.btnEl.querySelector(".obs-cycle__val");
+    ctl.btnEl.addEventListener("click", () => {
+      // indexOf(null) is -1, so an unset control advances to cycle[0];
+      // the last value wraps back to unset.
+      const i = ctl.cycle.indexOf(state[ctl.key]);
+      state[ctl.key] = i === ctl.cycle.length - 1 ? null : ctl.cycle[i + 1];
       render();
     });
+  });
+}
+
+// Edge-fade scroll hints: fade a scroller's clipped edge while more
+// content lies in that direction (mask gradients in CSS keyed off these
+// classes). Re-run on scroll, resize, and after every render since
+// content height changes.
+function updateScrollFade(el) {
+  el.classList.toggle("scroll-fade--up", el.scrollTop > 4);
+  el.classList.toggle("scroll-fade--down", el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+}
+
+function wireScrollFades() {
+  [els.traitsRow, els.resultsList].forEach((el) => {
+    el.addEventListener("scroll", () => updateScrollFade(el), { passive: true });
+  });
+  window.addEventListener("resize", () => {
+    updateScrollFade(els.traitsRow);
+    updateScrollFade(els.resultsList);
   });
 }
 
@@ -171,12 +228,20 @@ function wireReset() {
   els.resetBtn.addEventListener("click", () => {
     state.evidence.clear();
     state.traits.clear();
-    state.gender = "unknown";
-    state.traitsExpanded = true;
+    state.gender = null;
+    state.huntSpeed = null;
+    state.losAccel = null;
+    state.traitsExpanded = false;
+    state.manuallyOut.clear();
     document.querySelectorAll(".chip[data-evidence]").forEach((c) => c.setAttribute("aria-pressed", "false"));
-    els.genderRow.querySelectorAll("[data-gender]").forEach((c) => c.setAttribute("aria-pressed", "false"));
     render();
   });
+}
+
+function toggleManuallyOut(name) {
+  if (state.manuallyOut.has(name)) state.manuallyOut.delete(name);
+  else state.manuallyOut.add(name);
+  render();
 }
 
 // Returns { possible: bool, mimicFlag: bool, matchCount: int }
@@ -208,6 +273,17 @@ function evaluateGhost(ghost) {
   }
   // Confirmed female doesn't eliminate anyone (all ghosts can be female).
 
+  // Speed observations — huntSpeed/losAccel are arrays of every value a
+  // ghost can present (conditional ghosts like Deogen or Hantu list
+  // several). A ghost survives if it can EVER present the observed value;
+  // missing data never eliminates, so unverified entries stay safe.
+  if (state.huntSpeed && ghost.huntSpeed && !ghost.huntSpeed.includes(state.huntSpeed)) {
+    ruledOut = true;
+  }
+  if (state.losAccel && ghost.losAccel && !ghost.losAccel.includes(state.losAccel)) {
+    ruledOut = true;
+  }
+
   // Trait check — every selected trait must include this ghost, unless
   // the ghost has no bearing on that trait (only enforced when tags exist).
   for (const traitId of state.traits) {
@@ -223,17 +299,23 @@ function evaluateGhost(ghost) {
 }
 
 function render() {
+  updateObsControls();
+
   const results = state.ghosts.map((ghost) => ({
     ghost,
     ...evaluateGhost(ghost),
+    manualOut: state.manuallyOut.has(ghost.name),
   }));
+  results.forEach((r) => {
+    r.combinedPossible = r.possible && !r.manualOut;
+  });
 
-  const possibleCount = results.filter((r) => r.possible).length;
-  const possibleNames = new Set(results.filter((r) => r.possible).map((r) => r.ghost.name));
-  updateTraitsPanel(possibleCount, possibleNames);
+  const possibleCount = results.filter((r) => r.combinedPossible).length;
+  const possibleNames = new Set(results.filter((r) => r.combinedPossible).map((r) => r.ghost.name));
+  updateTraitsPanel(possibleNames);
 
   results.sort((a, b) => {
-    if (a.possible !== b.possible) return a.possible ? -1 : 1;
+    if (a.combinedPossible !== b.combinedPossible) return a.combinedPossible ? -1 : 1;
     return b.matchCount - a.matchCount;
   });
 
@@ -246,17 +328,25 @@ function render() {
     return;
   }
 
-  results.forEach(({ ghost, possible, mimicFlag, matchCount }) => {
+  results.forEach(({ ghost, possible, mimicFlag, matchCount, manualOut }) => {
     const li = document.createElement("li");
-    li.className = "ghost-card";
-    if (!possible) li.classList.add("ghost-card--ruled-out");
-    if (mimicFlag && possible) li.classList.add("ghost-card--mimic-flag");
 
     const segs = [0, 1, 2]
       .map((i) => `<span class="ghost-card__seg ${i < matchCount ? "ghost-card__seg--filled" : ""}"></span>`)
       .join("");
 
-    li.innerHTML = `
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ghost-card";
+    if (!possible) btn.classList.add("ghost-card--ruled-out");
+    if (manualOut) btn.classList.add("ghost-card--manual-out");
+    if (mimicFlag && possible && !manualOut) btn.classList.add("ghost-card--mimic-flag");
+    btn.setAttribute("aria-pressed", String(manualOut));
+    btn.setAttribute(
+      "aria-label",
+      `${ghost.name}${manualOut ? " — crossed off, tap to restore" : " — tap to cross off"}`
+    );
+    btn.innerHTML = `
       <div class="ghost-card__top">
         <span class="ghost-card__name">${ghost.name}</span>
         <span class="ghost-card__bar">${segs}</span>
@@ -264,16 +354,23 @@ function render() {
       <div class="ghost-card__meta">
         ${ghost.evidence.map((e) => EVIDENCE_LABELS_SHORT[e]).join(" · ")}
       </div>
-      ${mimicFlag && possible ? `<div class="ghost-card__mimic-note">Possible fake orbs</div>` : ""}
+      ${mimicFlag && possible && !manualOut ? `<div class="ghost-card__mimic-note">Possible fake orbs</div>` : ""}
     `;
+    btn.addEventListener("click", () => toggleManuallyOut(ghost.name));
+
+    li.appendChild(btn);
     els.resultsList.appendChild(li);
   });
+
+  updateScrollFade(els.traitsRow);
+  updateScrollFade(els.resultsList);
 }
 
 async function init() {
   buildEvidenceChips();
-  wireGender();
+  wireObservations();
   wireTraitsToggle();
+  wireScrollFades();
   wireReset();
   await loadGhosts();
   render();
