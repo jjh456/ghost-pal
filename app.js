@@ -8,6 +8,18 @@ const EVIDENCE_LABELS = {
   DOTS: "DOTS",
 };
 
+// Compact labels for ghost-card meta lines, where 3 evidence names need to
+// share one row without wrapping. Full names stay on the evidence chips.
+const EVIDENCE_LABELS_SHORT = {
+  EMF5: "EMF5",
+  Orb: "Orbs",
+  SpiritBox: "Sp. Box",
+  Freezing: "Freeze",
+  UV: "UV",
+  Writing: "Writing",
+  DOTS: "DOTS",
+};
+
 // Curated v1 trait set — maps a plain-language behavior to the ghost(s)
 // consistent with it. Not exhaustive; expand as needed in data alongside
 // ghosts.json's strength/weakness text.
@@ -250,7 +262,7 @@ function render() {
         <span class="ghost-card__bar">${segs}</span>
       </div>
       <div class="ghost-card__meta">
-        ${ghost.evidence.map((e) => EVIDENCE_LABELS[e]).join(" · ")}
+        ${ghost.evidence.map((e) => EVIDENCE_LABELS_SHORT[e]).join(" · ")}
       </div>
       ${mimicFlag && possible ? `<div class="ghost-card__mimic-note">Possible fake orbs</div>` : ""}
     `;

@@ -254,7 +254,7 @@ main {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   grid-auto-rows: 1fr;
   gap: 8px;
   align-content: start;
@@ -309,9 +309,12 @@ main {
 .ghost-card__seg--filled { background: var(--warn); }
 
 .ghost-card__meta {
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ghost-card__mimic-note {
