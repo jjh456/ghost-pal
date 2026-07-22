@@ -141,35 +141,41 @@ main {
   margin-top: 6px;
 }
 
-.obs-row__label {
-  font-size: 13px;
-  color: var(--text-dim);
-  flex: 0 0 auto;
-}
-
 .obs-row .chip-row {
   flex: 0 0 auto;
 }
 
-/* The evidence row's chips wrap onto extra lines as needed; keep them
-   gathered against the right edge so the row reads like the others. */
+/* The evidence chips wrap centered across the full width, echoing the
+   full-width selector row above. */
 .obs-row .chip-row--wrap {
   flex: 1 1 auto;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
-/* For wrapping rows, align the label with the first line of chips rather
-   than the middle of the whole block — line-height matches the chip--sm
-   min-height so the label text centers against that first line. */
+/* Divider with its label set into the line ("── EVIDENCE ──"), separating
+   the evidence block from the selector row. Styled like the cycle
+   selectors' key text so it reads as the same family of label. */
+.obs-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.obs-divider::before,
+.obs-divider::after {
+  content: "";
+  flex: 1 1 0;
+  border-top: 1px solid var(--border);
+}
+
 .obs-row--top {
   align-items: flex-start;
-  /* thin rule setting the evidence block apart from the selector row */
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-  margin-top: 10px;
-}
-.obs-row--top .obs-row__label {
-  line-height: 32px;
+  margin-top: 8px;
 }
 
 /* Cycle selectors: each tap steps unset → value → … → unset, same as the
