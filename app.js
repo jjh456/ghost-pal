@@ -376,6 +376,14 @@ async function init() {
   render();
 
   if ("serviceWorker" in navigator) {
+    // When an updated worker takes over (it calls skipWaiting/claim),
+    // reload once so the open app swaps to the fresh assets. The guard
+    // both prevents reload loops and skips the very first install,
+    // where claim() fires controllerchange but nothing was stale.
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (hadController) location.reload();
+    });
     navigator.serviceWorker.register("./sw.js").catch(() => {
       /* offline support is best-effort, ignore registration failures */
     });

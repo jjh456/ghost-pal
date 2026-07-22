@@ -1,4 +1,4 @@
-const CACHE_NAME = "phasmo-ghost-id-v9";
+const CACHE_NAME = "phasmo-ghost-id-v10";
 const ASSETS = [
   "./",
   "./index.html",
@@ -31,18 +31,25 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Stale-while-revalidate: serve from cache for instant offline-capable
+// loads, but always re-fetch in the background and update the cache, so
+// a deploy is picked up on the next launch without a CACHE_NAME bump.
 self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        // Only cache successful same-origin GET responses.
-        if (event.request.method === "GET" && response.ok) {
+      const refetch = fetch(event.request).then((response) => {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => cached);
+      });
+      if (cached) {
+        refetch.catch(() => {}); // offline: keep serving the cached copy
+        return cached;
+      }
+      return refetch;
     })
   );
 });
