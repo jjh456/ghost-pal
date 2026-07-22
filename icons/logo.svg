@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="32" result="blur"/>
+      <feFlood flood-color="#B53EA2" flood-opacity="1" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="softGlow"/>
+      <feMerge>
+        <feMergeNode in="softGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+  <!-- Ghost body -->
+  <path d="
+    M 256 60
+    C 156 60, 96 130, 96 230
+    L 96 430
+    C 96 445, 112 452, 124 442
+    L 152 418
+    C 160 411, 172 411, 180 418
+    L 206 440
+    C 214 447, 226 447, 234 440
+    L 256 420
+    L 278 440
+    C 286 447, 298 447, 306 440
+    L 332 418
+    C 340 411, 352 411, 360 418
+    L 388 442
+    C 400 452, 416 445, 416 430
+    L 416 230
+    C 416 130, 356 60, 256 60
+    Z"
+    fill="#FDFDFE" stroke="#7B5BC0" stroke-width="16" stroke-linejoin="round"/>
+
+  <!-- Heart eyes, grouped for easy centering -->
+  <g transform="translate(10.5,0) translate(246,221) scale(1.5) translate(-246,-221)">
+  <!-- Left heart eye -->
+  <path d="
+    M 154 208
+    C 154 194, 166 184, 178 184
+    C 186 184, 193 189, 196 196
+    C 199 189, 206 184, 214 184
+    C 226 184, 238 194, 238 208
+    C 238 226, 220 240, 196 258
+    C 172 240, 154 226, 154 208
+    Z"
+    fill="#E8546B" stroke="#7B5BC0" stroke-width="9" stroke-linejoin="round"/>
+
+  <!-- Right heart eye -->
+  <path d="
+    M 254 208
+    C 254 194, 266 184, 278 184
+    C 286 184, 293 189, 296 196
+    C 299 189, 306 184, 314 184
+    C 326 184, 338 194, 338 208
+    C 338 226, 320 240, 296 258
+    C 272 240, 254 226, 254 208
+    Z"
+    fill="#E8546B" stroke="#7B5BC0" stroke-width="9" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Classic O mouth -->
+  <g transform="translate(256,312) scale(1.4) translate(-256,-312)">
+  <circle cx="256" cy="312" r="20" fill="#7B5BC0" stroke="#7B5BC0" stroke-width="7"/>
+  </g>
+  </g>
+</svg>

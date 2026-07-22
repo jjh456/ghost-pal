@@ -1,4 +1,4 @@
-const CACHE_NAME = "phasmo-ghost-id-v1";
+const CACHE_NAME = "phasmo-ghost-id-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,13 @@ const ASSETS = [
   "./app.js",
   "./manifest.json",
   "./data/ghosts.json",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./icons/logo-192.png",
+  "./icons/logo-512.png",
+  "./icons/apple-touch-icon.png",
+  "./icons/favicon-16x16.png",
+  "./icons/favicon-32x32.png",
+  "./icons/favicon.ico",
+  "./icons/logo.svg",
 ];
 
 self.addEventListener("install", (event) => {

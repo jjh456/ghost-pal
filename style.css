@@ -38,10 +38,24 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 2px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   flex: 0 0 auto;
+}
+
+.app-header__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header__logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 3px #B53EA2) drop-shadow(0 0 6px #B53EA2);
 }
 
 .app-header h1 {
