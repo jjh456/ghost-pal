@@ -55,6 +55,63 @@ body {
   gap: 8px;
 }
 
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* Difficulty selector: same tap-to-cycle idiom as the observation cycle
+   selectors, sized down to sit in the header. Goes amber on reduced-
+   evidence difficulties (Nightmare/Insanity) to flag that it's changing
+   how evidence filters — the same amber "this is active" convention used
+   by the obs selectors and the trait count. */
+.diff-cycle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--mono);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.diff-cycle:active {
+  transform: scale(0.98);
+}
+
+.diff-cycle__key {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.diff-cycle__val {
+  /* Fixed to the widest label ("Nightmare", 9ch in the mono font) so the
+     button doesn't resize as the difficulty cycles. */
+  min-width: 9ch;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.diff-cycle--reduced {
+  border-color: var(--warn);
+}
+.diff-cycle--reduced .diff-cycle__val {
+  color: var(--warn);
+}
+
 .app-header__logo-wrap {
   position: relative;
   width: 44px;

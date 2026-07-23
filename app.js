@@ -45,9 +45,23 @@ const TRAITS = [
   { id: "slows-with-moved-items", label: "Very fast early, slows as more unique items get moved", ghosts: ["Deildegast"] },
 ];
 
+// Difficulty tiers set how many of a ghost's 3 evidence the game reveals.
+// The three full-evidence tiers are filtering-equivalent but listed
+// separately so a player just picks their actual difficulty. `evidence`
+// is the count you can find; below 3, one/two pieces are randomly hidden,
+// which is what makes "confirmed absent" unreliable (see evaluateGhost).
+const DIFFICULTIES = [
+  { id: "amateur", label: "Amateur", evidence: 3 },
+  { id: "intermediate", label: "Interm.", evidence: 3 },
+  { id: "professional", label: "Pro", evidence: 3 },
+  { id: "nightmare", label: "Nightmare", evidence: 2 },
+  { id: "insanity", label: "Insanity", evidence: 1 },
+];
+
 const state = {
   ghosts: [],
   evidence: new Map(), // code -> 'positive' | 'negative'; absent = unknown
+  difficulty: "professional", // full-evidence default; see DIFFICULTIES
   traits: new Set(),
   gender: null, // null (unknown) | 'male' | 'female'
   huntSpeed: null, // null | 'slow' | 'normal' | 'fast'
@@ -81,6 +95,9 @@ const OBS_CONTROLS = [
 ];
 
 const els = {
+  difficultyBtn: document.getElementById("difficultyBtn"),
+  difficultyVal: document.getElementById("difficultyVal"),
+  evidenceLabel: document.getElementById("evidence-label"),
   evidenceRow: document.getElementById("evidenceRow"),
   traitsRow: document.getElementById("traitsRow"),
   traitsToggle: document.getElementById("traitsToggle"),
@@ -97,11 +114,32 @@ async function loadGhosts() {
   state.ghosts = data.ghosts;
 }
 
+function currentDifficulty() {
+  return DIFFICULTIES.find((d) => d.id === state.difficulty);
+}
+
+// True on the full-evidence tiers, where all 3 evidence are findable so a
+// "confirmed absent" (negative) mark is meaningful. On Nightmare/Insanity
+// a piece is randomly hidden, so absence can't be confirmed — negative
+// marks are disallowed and don't eliminate.
+function fullEvidence() {
+  return currentDifficulty().evidence === 3;
+}
+
 // aria-pressed cycles false (unknown) -> true (positive) -> mixed (negative/crossed out) -> false.
 function evidenceAriaValue(mark) {
   if (mark === "positive") return "true";
   if (mark === "negative") return "mixed";
   return "false";
+}
+
+// Reflect state onto the evidence chips' aria-pressed. Used after any
+// programmatic change to evidence (reset, difficulty drop) so the chips
+// stay in sync without each caller poking the DOM.
+function syncEvidenceChips() {
+  document.querySelectorAll(".chip[data-evidence]").forEach((chip) => {
+    chip.setAttribute("aria-pressed", evidenceAriaValue(state.evidence.get(chip.dataset.evidence)));
+  });
 }
 
 function buildEvidenceChips() {
@@ -115,7 +153,8 @@ function buildEvidenceChips() {
     chip.textContent = label;
     chip.addEventListener("click", () => {
       const current = state.evidence.get(code);
-      const next = !current ? "positive" : current === "positive" ? "negative" : undefined;
+      // unknown -> positive -> (negative only when absence is confirmable) -> unknown
+      const next = !current ? "positive" : current === "positive" && fullEvidence() ? "negative" : undefined;
       if (next) state.evidence.set(code, next);
       else state.evidence.delete(code);
       chip.setAttribute("aria-pressed", evidenceAriaValue(next));
@@ -168,6 +207,37 @@ function updateTraitsPanel(possibleNames) {
   els.traitsRow.hidden = !state.traitsExpanded;
 
   buildTraitChips(state.traitsExpanded ? visible : []);
+}
+
+// Syncs the header difficulty control and the evidence label. On reduced
+// tiers the control goes amber and the Evidence divider spells out how
+// many pieces may be hidden — i.e. why absence stops ruling ghosts out.
+function updateDifficultyControl() {
+  const d = currentDifficulty();
+  const hidden = 3 - d.evidence;
+  els.difficultyVal.textContent = d.label;
+  els.difficultyBtn.classList.toggle("diff-cycle--reduced", hidden > 0);
+  els.difficultyBtn.setAttribute(
+    "aria-label",
+    `Difficulty: ${d.label}, ${d.evidence} of 3 evidence available. Tap to cycle.`
+  );
+  els.evidenceLabel.textContent = hidden > 0 ? `Evidence — ${hidden} may be hidden` : "Evidence";
+}
+
+function wireDifficulty() {
+  els.difficultyBtn.addEventListener("click", () => {
+    const i = DIFFICULTIES.findIndex((d) => d.id === state.difficulty);
+    state.difficulty = DIFFICULTIES[(i + 1) % DIFFICULTIES.length].id;
+    // Dropping to a reduced tier makes absence unconfirmable — clear any
+    // negative marks so they can't linger as stale eliminations.
+    if (!fullEvidence()) {
+      for (const [code, mark] of state.evidence) {
+        if (mark === "negative") state.evidence.delete(code);
+      }
+      syncEvidenceChips();
+    }
+    render();
+  });
 }
 
 // Syncs the cycle selectors to state: value slot shows the set value (or
@@ -233,7 +303,9 @@ function wireReset() {
     state.losAccel = null;
     state.traitsExpanded = false;
     state.manuallyOut.clear();
-    document.querySelectorAll(".chip[data-evidence]").forEach((c) => c.setAttribute("aria-pressed", "false"));
+    // Difficulty is a per-session setting (same game = same difficulty),
+    // so it deliberately survives a contract reset.
+    syncEvidenceChips();
     render();
   });
 }
@@ -261,8 +333,12 @@ function evaluateGhost(ghost) {
       }
       ruledOut = true;
     }
-    if (mark === "negative" && hasIt) {
+    if (mark === "negative" && hasIt && fullEvidence()) {
       // Evidence confirmed absent — any ghost that requires it is out.
+      // Only trustworthy on full-evidence tiers; on Nightmare/Insanity a
+      // required piece may simply be the hidden one, so absence can't rule
+      // anything out. (The chips don't offer negative there anyway, but a
+      // difficulty switch could leave a stale mark before it's cleared.)
       ruledOut = true;
     }
   }
@@ -299,6 +375,7 @@ function evaluateGhost(ghost) {
 }
 
 function render() {
+  updateDifficultyControl();
   updateObsControls();
 
   const results = state.ghosts.map((ghost) => ({
@@ -368,6 +445,7 @@ function render() {
 
 async function init() {
   buildEvidenceChips();
+  wireDifficulty();
   wireObservations();
   wireTraitsToggle();
   wireScrollFades();
