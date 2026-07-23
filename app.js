@@ -58,6 +58,11 @@ const DIFFICULTIES = [
   { id: "insanity", label: "Insanity", evidence: 1 },
 ];
 
+// Compact skull glyph for the hunt-threshold badge. Inline (not emoji) so
+// it takes the badge's currentColor and stays crisp at ~11px; eyes/nose
+// are evenodd holes that show the card through.
+const SKULL_SVG = `<svg class="hunt-badge__skull" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill-rule="evenodd" d="M8 2C4.8 2 2.5 4.3 2.5 7.2c0 1.7.9 3.1 2.1 4V12.5c0 .6.5 1 1 1h.9v-1.2h1v1.2h1v-1.2h1v1.2h.9c.6 0 1-.5 1-1V11.2c1.2-.9 2.1-2.3 2.1-4C13.5 4.3 11.2 2 8 2ZM4.15 7a1.25 1.25 0 1 0 2.5 0 1.25 1.25 0 1 0-2.5 0Zm5.2 0a1.25 1.25 0 1 0 2.5 0 1.25 1.25 0 1 0-2.5 0ZM8 8.5l-.65 1.3h1.3Z"/></svg>`;
+
 const state = {
   ghosts: [],
   evidence: new Map(), // code -> 'positive' | 'negative'; absent = unknown
@@ -374,6 +379,16 @@ function evaluateGhost(ghost) {
   return { possible: !ruledOut, mimicFlag, matchCount };
 }
 
+// Hunt-threshold badge: shown only for ghosts with a non-standard resting
+// threshold (default 50 is omitted in the data). Red when it can hunt
+// sooner than usual (>50 = more dangerous), dim when it only hunts at very
+// low sanity (<50 = you're safer longer).
+function huntBadgeHTML(ghost) {
+  if (ghost.hunt == null || ghost.hunt === 50) return "";
+  const cls = ghost.hunt > 50 ? "hunt-badge--high" : "hunt-badge--low";
+  return `<span class="hunt-badge ${cls}" title="Can hunt at ${ghost.hunt}% sanity">${SKULL_SVG}${ghost.hunt}%</span>`;
+}
+
 function render() {
   updateDifficultyControl();
   updateObsControls();
@@ -412,6 +427,8 @@ function render() {
       .map((i) => `<span class="ghost-card__seg ${i < matchCount ? "ghost-card__seg--filled" : ""}"></span>`)
       .join("");
 
+    const huntBadge = huntBadgeHTML(ghost);
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "ghost-card";
@@ -428,6 +445,7 @@ function render() {
         <span class="ghost-card__name">${ghost.name}</span>
         <span class="ghost-card__bar">${segs}</span>
       </div>
+      ${huntBadge ? `<div class="ghost-card__badge-row">${huntBadge}</div>` : ""}
       <div class="ghost-card__meta">
         ${ghost.evidence.map((e) => EVIDENCE_LABELS_SHORT[e]).join(" · ")}
       </div>

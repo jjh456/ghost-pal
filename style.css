@@ -548,7 +548,7 @@ main {
   height: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--panel-2);
   color: inherit;
   font: inherit;
@@ -556,7 +556,7 @@ main {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   transition:
     opacity 0.15s,
     border-color 0.15s;
@@ -611,13 +611,50 @@ main {
   background: var(--warn);
 }
 
+/* Badge sits on its own row above the evidence line, left-aligned. Only
+   present for non-standard thresholds, so it doesn't disturb the layout
+   of the 50%-threshold majority. */
+.ghost-card__badge-row {
+  display: flex;
+  align-items: center;
+}
+
 .ghost-card__meta {
   font-size: 12px;
-  line-height: 1.45;
+  /* Single line (nowrap), so keep line-height tight — a tall line box
+     here just adds leading above the text and makes the badge look
+     closer to the title than to the evidence. */
+  line-height: 1.2;
   color: var(--text-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Hunt-threshold badge: skull glyph + sanity %. Non-standard thresholds
+   only — 50% ghosts carry no badge. */
+.hunt-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.hunt-badge__skull {
+  display: block;
+  fill: currentColor;
+}
+/* Hunts sooner than normal — flag it. */
+.hunt-badge--high {
+  color: var(--danger);
+}
+/* Only hunts at very low sanity — muted, it's the reassuring case. */
+.hunt-badge--low {
+  color: var(--text-dim);
 }
 
 .ghost-card__mimic-note {
